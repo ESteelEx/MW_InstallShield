@@ -22,8 +22,13 @@ class pilot(threading.Thread):
         # script = os.path.abspath(sys.argv[0])
         # params = ' '.join([script] + sys.argv[1:] + [ASADMIN])
         script = os.path.abspath('..\\CORE\\UAC_tools.py')
-        params = ' '.join([script] + [ASADMIN])
-        stat = shell.ShellExecuteEx(lpVerb='runas', lpFile=sys.executable, lpParameters=params)
+        params = ' '.join([script] + ['"' + self.installation_folder + '"'] + [ASADMIN])
+
+        print params
+
+        stat = shell.ShellExecuteEx(lpVerb='runas',
+                                    lpFile=sys.executable,
+                                    lpParameters=params)
 
         fh = open(self.package_folder + self.package_file, 'rb')
         z = zipfile.ZipFile(fh)

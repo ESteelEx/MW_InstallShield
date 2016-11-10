@@ -6,5 +6,6 @@ def mkdir(folder):
     if not os.path.isdir(folder):
         os.mkdir(folder)
 
-print 'RUNNING EXTERN'
-mkdir(r'C:\Program Files\MW3DPrinting\\')
+fh = open('log.txt', 'w')
+fh.write(sys.argv[-2])
+mkdir(sys.argv[-2])
