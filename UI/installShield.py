@@ -198,11 +198,23 @@ class installShield(wx.Dialog):
         self.button_install.SetLabel('INSTALL')
         self.button_install.SetForegroundColour(UI.SWAPPING['UP'])
 
-        print self.editbox[0].GetValue()
-        print self.editbox[1].GetValue()
+        self.rhino_folder = self.editbox[0].GetValue()
+        self.inst_folder = self.editbox[1].GetValue()
 
-        P = pilot.pilot(self.editbox[0].GetValue(), self.editbox[1].GetValue())
+        if self.rhino_folder.strip()[-1] != '\\':
+            self.rhino_folder = self.rhino_folder + '\\'
+
+        if self.inst_folder.strip()[-1] != '\\':
+            self.inst_folder = self.inst_folder + '\\'
+
+        print self.rhino_folder
+        print self.inst_folder
+
+        P = pilot.pilot(self.rhino_folder, self.inst_folder)
         P.start()
+        P.join()
+
+        self.Destroy()
 
     # ------------------------------------------------------------------------------------------------------------------
     def close_IS(self, event):

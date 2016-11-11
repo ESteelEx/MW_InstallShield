@@ -1,15 +1,30 @@
 import os, sys, zipfile, shutil
 
+INST_FOLDER = sys.argv[1].replace('%20', ' ')
+RHINO_FOLDER = sys.argv[2].replace('%20', ' ')
+PACKAGE = sys.argv[3].replace('%20', ' ')
+
+LIB_FOLDER = r'Plug-ins\IronPython\Lib\\'
+CONFIG_FILE = 'MW_printer_global_parameter.py'
+TOOLBAR_FOLDER = r'Plug-ins\Toolbars\\'
+TOOLBAR_FILE = 'MW3DPrint_TB.rui'
+
 
 # ------------------------------------------------------------------------------------------------------------------
-def mkdir(inst_folder):
-    if not os.path.isdir(inst_folder):
-        os.mkdir(inst_folder)
+def mkdir(INST_FOLDER):
+
+    inst_folder_split = INST_FOLDER.split('\\')
+
+    folder_str = ''
+    for folder in inst_folder_split:
+        folder_str = folder_str + folder + '\\'
+        if not os.path.isdir(folder_str):
+            os.mkdir(folder_str)
 
 
 # ------------------------------------------------------------------------------------------------------------------
-def extract(inst_folder, package):
-    fh = open(package, 'rb')
+def extract(INST_FOLDER, PACKAGE):
+    fh = open(PACKAGE, 'rb')
     z = zipfile.ZipFile(fh)
     for name in z.namelist():
         try:
@@ -20,14 +35,14 @@ def extract(inst_folder, package):
                 folder_str = ''
                 for folder in folders:
                     folder_str = folder_str + folder + '\\'
-                    print 'Creating: ' + inst_folder + folder_str
+                    print 'Creating: ' + INST_FOLDER + folder_str
                     try:
-                        os.mkdir(inst_folder + folder_str)
+                        os.mkdir(INST_FOLDER + folder_str)
                     except:
                         pass
 
             else:
-                outfile = open(inst_folder + name, 'wb')
+                outfile = open(INST_FOLDER + name, 'wb')
                 outfile.write(z.read(name))
                 outfile.close()
         except:
@@ -37,17 +52,59 @@ def extract(inst_folder, package):
 
 
 # ------------------------------------------------------------------------------------------------------------------
-def copy_conf_file(inst_folder, rhino_folder):
-    config_file = 'MW_printer_global_parameter.py'
-    lib_folder = r'Plug-ins\IronPython\Lib\\'
-    shutil.move(inst_folder + config_file, rhino_folder + lib_folder + config_file)
+def copy_conf_file(INST_FOLDER, RHINO_FOLDER):
+    shutil.move(INST_FOLDER + CONFIG_FILE, RHINO_FOLDER + LIB_FOLDER + CONFIG_FILE)
 
 
 # ------------------------------------------------------------------------------------------------------------------
-def adapt_abs_folders():
-    pass
+def copy_tool_bar(INST_FOLDER, RHINO_FOLDER):
+    shutil.move(INST_FOLDER + TOOLBAR_FILE, RHINO_FOLDER + TOOLBAR_FOLDER + TOOLBAR_FILE)
 
 
-mkdir(sys.argv[-4].replace('%20', ' '))
-extract(sys.argv[-4].replace('%20', ' '), sys.argv[-2].replace('%20', ' '))
-copy_conf_file(sys.argv[-4].replace('%20', ' '), sys.argv[-3].replace('%20', ' '))
+# ------------------------------------------------------------------------------------------------------------------
+def adapt_abs_folders(INST_FOLDER, RHINO_FOLDER):
+    _ABS_FOLDER_PLUGIN = INST_FOLDER + 'PY'
+    _ABS_FOLDER_SCRIPTS = INST_FOLDER + r'PY\RhinoInterface'
+    _ABS_FOLDER_CORE = INST_FOLDER
+
+    fh = open(RHINO_FOLDER + LIB_FOLDER + CONFIG_FILE, 'r')
+    content = fh.readlines()
+    for line, j in zip(content, range(len(content))):
+        if line.find('_ABS_FOLDER_PLUGIN') != -1:
+            line_split = line.split('=')
+            line_split_split = line_split[1].split("'")
+            line_split_split[1] = _ABS_FOLDER_PLUGIN
+            line_split[1] = "'".join(line_split_split)
+            line = "=".join(line_split)
+            content[j] = line
+
+        if line.find('_ABS_FOLDER_SCRIPTS') != -1:
+            line_split = line.split('=')
+            line_split_split = line_split[1].split("'")
+            line_split_split[1] = _ABS_FOLDER_SCRIPTS
+            line_split[1] = "'".join(line_split_split)
+            line = "=".join(line_split)
+            content[j] = line
+
+        if line.find('_ABS_FOLDER_CORE') != -1:
+            line_split = line.split('=')
+            line_split_split = line_split[1].split("'")
+            line_split_split[1] = _ABS_FOLDER_CORE[:-1]
+            line_split[1] = "'".join(line_split_split)
+            line = "=".join(line_split)
+            content[j] = line
+
+    fh.close()
+
+    fh = open(RHINO_FOLDER + LIB_FOLDER + CONFIG_FILE, 'w')
+    for line in content:
+        fh.write(line)
+
+    fh.close()
+
+
+mkdir(INST_FOLDER)
+extract(INST_FOLDER, PACKAGE)
+copy_conf_file(INST_FOLDER, RHINO_FOLDER)
+copy_tool_bar(INST_FOLDER, RHINO_FOLDER)
+adapt_abs_folders(INST_FOLDER, RHINO_FOLDER)
