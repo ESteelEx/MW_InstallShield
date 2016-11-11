@@ -1,7 +1,8 @@
-import shutil, os, zipfile, sys
+import os, sys
 import win32com.shell.shell as shell
-import zipfile, fnmatch
 import threading
+import shutil
+
 
 class pilot(threading.Thread):
     def __init__(self, rhino_folder, installation_folder):
@@ -9,49 +10,28 @@ class pilot(threading.Thread):
         self.installation_folder = installation_folder
         self.package_folder = r'../bin/package/'
         self.package_file = 'MWAdditive.zip'
+        self.config_file = 'MW_printer_global_parameter.py'
+        self.lib_folder = r'Plug-ins\IronPython\Lib\\'
         threading.Thread.__init__(self)
 
     # ------------------------------------------------------------------------------------------------------------------
     def run(self):
-        self.extract()
+        stat = self.install()
+
+        print stat
+        print dir(stat['hProcess'].handle)
+
+        print 'DONE'
 
     # ------------------------------------------------------------------------------------------------------------------
-    def extract(self):
-
+    def install(self):
         ASADMIN = 'asadmin'
-        # script = os.path.abspath(sys.argv[0])
-        # params = ' '.join([script] + sys.argv[1:] + [ASADMIN])
         script = os.path.abspath('..\\CORE\\UAC_tools.py')
-        params = ' '.join([script] + ['"' + self.installation_folder + '"'] + [ASADMIN])
-
-        print params
+        params = ' '.join([script] + [self.installation_folder.replace(' ', '%20')] + [self.rhino_folder.replace(' ', '%20')] + [self.package_folder.replace(' ', '%20') + self.package_file] + [ASADMIN])
 
         stat = shell.ShellExecuteEx(lpVerb='runas',
                                     lpFile=sys.executable,
-                                    lpParameters=params)
+                                    lpParameters=params
+                                    )
 
-        fh = open(self.package_folder + self.package_file, 'rb')
-        z = zipfile.ZipFile(fh)
-        for name in z.namelist():
-            try:
-                print name
-                if str(name)[-1] == '/':
-
-                        folders = name.split('/')
-                        folder_str = ''
-                        for folder in folders:
-                            folder_str = folder_str + folder + '\\'
-                            print 'Creating: ' + self.installation_folder + folder_str
-                            try:
-                                os.mkdir(self.installation_folder + folder_str)
-                            except:
-                                pass
-
-                else:
-                    outfile = open(self.installation_folder + name, 'wb')
-                    outfile.write(z.read(name))
-                    outfile.close()
-            except:
-                print name + ' failed'
-
-        fh.close()
+        return stat
