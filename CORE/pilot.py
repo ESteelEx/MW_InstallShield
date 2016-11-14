@@ -2,6 +2,7 @@ import os, sys
 import win32com.shell.shell as shell
 import threading
 import psutil
+import logging
 
 
 class pilot(threading.Thread):
@@ -14,6 +15,7 @@ class pilot(threading.Thread):
         self.lib_folder = r'Plug-ins\IronPython\Lib\\'
         self.toolbar_folder = r'Plug-ins\Toolbars\\'
         self.toolbar_file = r'MW3DPrint_TB.rui'
+        self.MWLOG = logging.getLogger('MWSETUP')
         threading.Thread.__init__(self)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -34,8 +36,9 @@ class pilot(threading.Thread):
                         return
 
             except:
-                pass
+                self.MWLOG.exception('THREAD')
 
+        self.MWLOG.info('STARTING INSTALLATION RUN')
         stat = self.install()
 
         print 'Installation done.'
@@ -57,9 +60,13 @@ class pilot(threading.Thread):
                           [self.package_folder.replace(' ', '%20') + self.package_file] +
                           [ASADMIN])
 
-        stat = shell.ShellExecuteEx(lpVerb='runas',
-                                    lpFile=sys.executable,
-                                    lpParameters=params
-                                    )
+        try:
+            stat = shell.ShellExecuteEx(lpVerb='runas',
+                                        lpFile=sys.executable,
+                                        lpParameters=params
+                                        )
+        except Exception:
+            stat = -1
+            self.MWLOG.exception('SHELL EXECUTE')
 
         return stat
