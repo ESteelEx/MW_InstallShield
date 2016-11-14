@@ -1,4 +1,5 @@
 import os, sys, zipfile, shutil
+import _winreg
 
 INST_FOLDER = sys.argv[1].replace('%20', ' ')
 RHINO_FOLDER = sys.argv[2].replace('%20', ' ')
@@ -10,7 +11,7 @@ TOOLBAR_FOLDER = r'Plug-ins\Toolbars\\'
 TOOLBAR_FILE = 'MW3DPrint_TB.rui'
 
 
-# ------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def mkdir(INST_FOLDER):
 
     inst_folder_split = INST_FOLDER.split('\\')
@@ -22,7 +23,7 @@ def mkdir(INST_FOLDER):
             os.mkdir(folder_str)
 
 
-# ------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def extract(INST_FOLDER, PACKAGE):
     fh = open(PACKAGE, 'rb')
     z = zipfile.ZipFile(fh)
@@ -51,17 +52,17 @@ def extract(INST_FOLDER, PACKAGE):
     fh.close()
 
 
-# ------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def copy_conf_file(INST_FOLDER, RHINO_FOLDER):
     shutil.move(INST_FOLDER + CONFIG_FILE, RHINO_FOLDER + LIB_FOLDER + CONFIG_FILE)
 
 
-# ------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def copy_tool_bar(INST_FOLDER, RHINO_FOLDER):
     shutil.move(INST_FOLDER + TOOLBAR_FILE, RHINO_FOLDER + TOOLBAR_FOLDER + TOOLBAR_FILE)
 
 
-# ------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 def adapt_abs_folders(INST_FOLDER, RHINO_FOLDER):
     _ABS_FOLDER_PLUGIN = INST_FOLDER + 'PY'
     _ABS_FOLDER_SCRIPTS = INST_FOLDER + r'PY\RhinoInterface'
@@ -103,8 +104,23 @@ def adapt_abs_folders(INST_FOLDER, RHINO_FOLDER):
     fh.close()
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+def create_reg_key():
+    try:
+        reg = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, 'Software')
+        reg_mw = _winreg.CreateKey(reg, 'MW3DPrinting')
+        _winreg.SetValue(reg_mw, 'CorePath', 1, INST_FOLDER)
+        _winreg.SetValue(reg_mw, 'ConfigFile', 1, RHINO_FOLDER + LIB_FOLDER + CONFIG_FILE)
+        _winreg.CloseKey(_winreg.HKEY_LOCAL_MACHINE)
+    except:
+        fh = open('log.txt', 'wa')
+        fh.write('[WARNING] Could not create reg keys.')
+        fh.close()
+
+
 mkdir(INST_FOLDER)
 extract(INST_FOLDER, PACKAGE)
 copy_conf_file(INST_FOLDER, RHINO_FOLDER)
 copy_tool_bar(INST_FOLDER, RHINO_FOLDER)
 adapt_abs_folders(INST_FOLDER, RHINO_FOLDER)
+create_reg_key()

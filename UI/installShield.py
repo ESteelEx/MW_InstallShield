@@ -1,4 +1,4 @@
-import os, wx
+import os, wx, sys
 from CORE import pilot
 import UI_settings as UI
 import _winreg
@@ -7,9 +7,21 @@ import _winreg
 class installShield(wx.Dialog):
     def __init__(self):
 
-        self.root_reg_key = 'Software\\McNeel\\Rhinoceros'
-        self.postfix_installation_folder = u'\MW3DPrinting\\'
-        self.icon_main = r'..\bin\images\install.ico'
+        try:
+            base_path = sys._MEIPASS + '\\'
+            print 'Start from EXE ... Working in ->'
+            print base_path
+        except Exception:
+            print 'Start from script ... Working in ->'
+            base_path = os.path.abspath(".") + '\\'
+            print base_path
+
+        self.root_reg_key = r'Software\McNeel\Rhinoceros\\'
+        self.MW_reg_key = r'Software\MW3DPrinting\\'
+
+        self.postfix_installation_folder = r'\MW3DPrinting\\'
+        self.icon_main = base_path + r'bin\images\install.ico'
+
         self.editbox = []
 
         wx.Dialog.__init__(self, None, title='MW Installer - 3D Printing for Rhino', size=UI.WMAIN['size'],
@@ -83,9 +95,13 @@ class installShield(wx.Dialog):
         self.editbox[0].SetBackgroundColour(UI.WCOLOR['BG'])  # set color
 
         try:
+            print 'Searching for Rhino installation ...'
             key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, self.root_reg_key)
         except:
             key = None
+            message = 'There is no Rhino installed. Visit http://www.rhino3d.com/download/ to get your version.'
+            print message
+            return
 
         if key is not None:
             i = 0
@@ -93,8 +109,7 @@ class installShield(wx.Dialog):
                 try:
                     subkey =_winreg.EnumKey(key, i)
                     if subkey.find('x') != -1:
-                        print 'Version found'
-                        print subkey.split('x')[1]
+                        print 'Rhino version ' + subkey.split('x')[0] + ' - ' + subkey.split('x')[1] + ' bit found.'
 
                         label = 'Rhino version ' + subkey.split('x')[0] + ' - ' + subkey.split('x')[1] + ' bit - found'
 
@@ -113,7 +128,7 @@ class installShield(wx.Dialog):
                 except:
                     break
 
-            key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, "Software\\McNeel\\Rhinoceros\\" + subkey + "\\Install")
+            key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, self.root_reg_key + subkey + "\\Install")
             reg_value = _winreg.QueryValueEx(key, "InstallPath")[0]
 
             self.editbox[0].SetValue(reg_value)
@@ -216,12 +231,10 @@ class installShield(wx.Dialog):
 
         self.Destroy()
 
+        print 'Have a nice one'
+
     # ------------------------------------------------------------------------------------------------------------------
     def close_IS(self, event):
+        print 'Canceled by user.'
         self.Destroy()
 
-
-if __name__ == "__main__":
-    app = wx.App(False)
-    IS = installShield()
-    app.MainLoop()

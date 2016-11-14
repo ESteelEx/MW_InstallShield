@@ -1,14 +1,14 @@
 import os, sys
 import win32com.shell.shell as shell
 import threading
-import shutil
+import psutil
 
 
 class pilot(threading.Thread):
     def __init__(self, rhino_folder, installation_folder):
         self.rhino_folder = rhino_folder
         self.installation_folder = installation_folder
-        self.package_folder = r'../bin/package/'
+        self.package_folder = r'bin\package\\'
         self.package_file = 'MWAdditive.zip'
         self.config_file = 'MW_printer_global_parameter.py'
         self.lib_folder = r'Plug-ins\IronPython\Lib\\'
@@ -19,22 +19,38 @@ class pilot(threading.Thread):
     # ------------------------------------------------------------------------------------------------------------------
     def run(self):
 
-        inst_folder_split = self.installation_folder.split('\\')
-        print inst_folder_split
+        running_inst = 0
+        for proc in psutil.process_iter():
+            try:
+                if proc.name() == 'Rhino.exe':
+                    print 'Rhino is running. Please exit instance.'
+                    try:
+                        print 'Killing process '
+                        proc.kill()
+                        print 'Rhino killed.'
+                    except:
+                        print 'Wasnt successful. End manually.'
+                        print 'Retry!'
+                        return
+
+            except:
+                pass
 
         stat = self.install()
-        print 'DONE'
-        print 'Starting Rhino'
+
+        print 'Installation done.'
+
+        # print 'Starting Rhino'
 
         cmd = '""%s" "%s""' % (self.rhino_folder + r'system\Rhino.exe ',
                                self.rhino_folder + self.toolbar_folder + self.toolbar_file)
 
-        os.system(cmd)
+        # os.system(cmd)
 
     # ------------------------------------------------------------------------------------------------------------------
     def install(self):
         ASADMIN = 'asadmin'
-        script = os.path.abspath('..\\CORE\\UAC_tools.py')
+        script = os.path.abspath(r'CORE\UAC_tools.py')
         params = ' '.join([script] +
                           [self.installation_folder.replace(' ', '%20')] +
                           [self.rhino_folder.replace(' ', '%20')] +
