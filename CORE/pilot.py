@@ -3,6 +3,10 @@ import win32com.shell.shell as shell
 import threading
 import psutil
 import logging
+import win32event
+import subprocess as sp
+
+
 
 
 class pilot(threading.Thread):
@@ -54,17 +58,35 @@ class pilot(threading.Thread):
     def install(self):
         ASADMIN = 'asadmin'
         script = os.path.abspath(r'CORE\UAC_tools.py')
-        params = ' '.join([script] +
-                          [self.installation_folder.replace(' ', '%20')] +
-                          [self.rhino_folder.replace(' ', '%20')] +
-                          [self.package_folder.replace(' ', '%20') + self.package_file] +
-                          [ASADMIN])
+        #params = ' '.join([script] +
+        #                  [self.installation_folder.replace(' ', '%20')] +
+        #                  [self.rhino_folder.replace(' ', '%20')] +
+        #                  [self.package_folder.replace(' ', '%20') + self.package_file] +
+        #                  [ASADMIN])
 
         try:
-            stat = shell.ShellExecuteEx(lpVerb='runas',
-                                        lpFile=sys.executable,
-                                        lpParameters=params
-                                        )
+            #dict = shell.ShellExecuteEx(lpVerb='runas',
+            #                            lpFile=sys.executable,
+            #                            lpParameters=params
+            #                            )
+
+
+            #hh = dict['hProcess']
+            #print hh
+            #ret = win32event.WaitForSingleObject(hh, -1)
+            #   print ret
+
+            params = ' '.join([script] +
+                              [self.installation_folder.replace(' ', '%20')] +
+                              [self.rhino_folder.replace(' ', '%20')] +
+                              [self.package_folder.replace(' ', '%20') + self.package_file])
+
+            prog = sp.Popen(['runas', params, '/noprofile', '/user:Administrator', 'NeedsAdminPrivilege.exe'], stdin=sp.PIPE)
+            # prog.stdin.write('password')
+            prog.communicate()
+
+            stat = 1
+
         except Exception:
             stat = -1
             self.MWLOG.exception('SHELL EXECUTE')
