@@ -288,7 +288,7 @@ class installShield(wx.Dialog):
         P.start()
         P.join()
 
-        #self.Destroy()
+        self.Destroy()
 
         print 'Have a nice one'
 

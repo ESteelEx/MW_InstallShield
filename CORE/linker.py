@@ -7,7 +7,7 @@ shortcut_group_name = "My Start Menu Shortcuts"
 shortcut_name = "Visit Microsofts website"
 shortcut_target = "http://www.microsoft.com"
 
-sh = win32com.client.Dispatch( "WScript.Shell" )
+sh = win32com.client.Dispatch("WScript.Shell")
 p = sh.SpecialFolders("AllUsersPrograms")
 assert( os.path.isdir(p) )
 p= os.path.join( p, shortcut_group_name)

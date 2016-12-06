@@ -1,4 +1,4 @@
-import wx, logging
+import sys, wx, logging
 from UI import installShield
 
 

@@ -1,12 +1,20 @@
-import os, sys, zipfile, shutil
+import os, sys, zipfile, shutil, time
 import _winreg
 import win32com.client
 import logging
 
+print 'Execution string ' + str(sys.argv)
 
-INST_FOLDER = sys.argv[1].replace('%20', ' ')
-RHINO_FOLDER = sys.argv[2].replace('%20', ' ')
-PACKAGE = sys.argv[3].replace('%20', ' ')
+if len(sys.argv) > 3:
+    INST_FOLDER = sys.argv[1].replace('%20', ' ')
+    RHINO_FOLDER = sys.argv[2].replace('%20', ' ')
+    PACKAGE = sys.argv[3].replace('%20', ' ')
+else:
+    print 'Folder destinations are missing.'
+    print '1. -> Installation folder'
+    print '2. -> Rhino folder'
+    print '3. -> Package folder + package'
+
 
 LIB_FOLDER = r'Plug-ins\IronPython\Lib\\'
 CONFIG_FILE = 'MW_printer_global_parameter.py'
@@ -27,6 +35,7 @@ def mkdir(INST_FOLDER):
                 os.mkdir(folder_str)
     except:
         MWLOG.exception('CREATE FOLDER')
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 def extract(INST_FOLDER, PACKAGE):
@@ -71,6 +80,7 @@ def copy_tool_bar(INST_FOLDER, RHINO_FOLDER):
         shutil.move(INST_FOLDER + TOOLBAR_FILE, RHINO_FOLDER + TOOLBAR_FOLDER + TOOLBAR_FILE)
     except Exception as e:
         MWLOG.exception('COPY TOOL BAR')
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 def adapt_abs_folders(INST_FOLDER, RHINO_FOLDER):
@@ -118,6 +128,7 @@ def adapt_abs_folders(INST_FOLDER, RHINO_FOLDER):
     except Exception as e:
         MWLOG.exception('ADAPT ABS FODLER')
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 def create_reg_key():
     try:
@@ -153,22 +164,31 @@ def create_startmenu_shortcut():
     except Exception as e:
         MWLOG.exception('CREATING SHORTCUT')
 
+# Switch to root folder in CMD. Exectute following line to test module without UAC permission.
+# CORE\UAC_tools.py C:\MW3D_06\ C:\MW3D_06\ bin\package\MWAdditive.zip
 
+logging.basicConfig(filename='MWLOG_UAC.log', level=logging.DEBUG)
+MWLOG = logging.getLogger('MWSETUP_UAC')
+MWLOG.info('---------------------------------------------')
+MWLOG.info('MW installer start: ' + time.ctime())
+MWLOG.info('---------------------------------------------')
 
-MWLOG = logging.getLogger('MWSETUP')
-MWLOG.info('Starting installation ...')
-
-MWLOG.info('Creating installation folder')
-mkdir(INST_FOLDER)
-MWLOG.info('Extracting package')
-extract(INST_FOLDER, PACKAGE)
-MWLOG.info('Copy config file')
-copy_conf_file(INST_FOLDER, RHINO_FOLDER)
-MWLOG.info('Copy tool bar')
-copy_tool_bar(INST_FOLDER, RHINO_FOLDER)
-MWLOG.info('Adapting config file')
-adapt_abs_folders(INST_FOLDER, RHINO_FOLDER)
-MWLOG.info('Creating registry entry')
-create_reg_key()
-MWLOG.info('Creating start menu')
-create_startmenu_shortcut()
+if len(sys.argv) > 3:
+    MWLOG.info('Creating installation folder')
+    mkdir(INST_FOLDER)
+    MWLOG.info('Extracting package')
+    extract(INST_FOLDER, PACKAGE)
+    MWLOG.info('Copy config file')
+    copy_conf_file(INST_FOLDER, RHINO_FOLDER)
+    MWLOG.info('Copy tool bar')
+    copy_tool_bar(INST_FOLDER, RHINO_FOLDER)
+    MWLOG.info('Adapting config file')
+    adapt_abs_folders(INST_FOLDER, RHINO_FOLDER)
+    MWLOG.info('Creating registry entry')
+    create_reg_key()
+    MWLOG.info('Creating start menu')
+    create_startmenu_shortcut()
+    MWLOG.info('DONE')
+else:
+    print 'Folder destinations are missing.'
+    MWLOG.error('Folder destinationsa are missing. Add sys arguments.')

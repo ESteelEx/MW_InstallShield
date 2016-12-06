@@ -2,7 +2,7 @@ import shutil, psutil
 
 for proc in psutil.process_iter():
     try:
-        if proc.name() == 'setup.exe':
+        if proc.name() == 'UAC_EXECUTER.exe':
             try:
                 proc.kill()
             except:
@@ -11,8 +11,8 @@ for proc in psutil.process_iter():
         pass
 
 # -*- mode: python -*-
-a = Analysis(['setup.py'],
-                datas=[('bin', 'bin'), ('CORE', 'CORE'), ('UI', 'UI')],
+a = Analysis(['UAC_tools.py'],
+                datas=[],
                 pathex=['.'],
                 hiddenimports=[],
                 hookspath=None,
@@ -32,16 +32,14 @@ exe = EXE(
     a.binaries,
     a.zipfiles,
     a.datas,
-    name=os.path.join('dist', 'setup.exe'),
+    name=os.path.join('dist', 'UAC_EXECUTER.exe'),
     debug=True,
     strip=None,
     upx=True,
-    console=True,
-    icon='bin\\images\\install.ico')
+    console=True)
 
 if os.path.isfile('setup.exe'):
     os.remove('setup.exe')
-    shutil.copy('dist\\setup.exe', 'setup.exe')
+    shutil.copy('dist\\UAC_EXECUTER.exe', 'UAC_EXECUTER.exe')
 else:
-    shutil.copy('dist\\setup.exe', 'setup.exe')
-
+    shutil.copy('dist\\UAC_EXECUTER.exe', 'UAC_EXECUTER.exe')

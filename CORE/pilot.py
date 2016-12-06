@@ -25,16 +25,21 @@ class pilot(threading.Thread):
     # ------------------------------------------------------------------------------------------------------------------
     def run(self):
 
+        self.MWLOG.info('STARTING INSTALLATION RUN')
+
         running_inst = 0
         for proc in psutil.process_iter():
             try:
                 if proc.name() == 'Rhino.exe':
+                    self.MWLOG.info('AN INSTANCE OF RHINO IS RUNNING')
                     print 'Rhino is running. Please exit instance.'
                     try:
                         print 'Killing process '
                         proc.kill()
                         print 'Rhino killed.'
+                        self.MWLOG.info('I KILLED A RHINO')
                     except:
+                        self.MWLOG.info('COULD NOT KILL RHINO')
                         print 'Wasnt successful. End manually.'
                         print 'Retry!'
                         return
@@ -42,7 +47,6 @@ class pilot(threading.Thread):
             except:
                 self.MWLOG.exception('THREAD')
 
-        self.MWLOG.info('STARTING INSTALLATION RUN')
         stat = self.install()
 
         print 'Installation done.'
@@ -54,15 +58,27 @@ class pilot(threading.Thread):
 
         # os.system(cmd)
 
+        self.MWLOG.info('DONE')
+
+        raw_input()
+
     # ------------------------------------------------------------------------------------------------------------------
     def install(self):
+        self.MWLOG.info('ENTERING UAC')
         ASADMIN = 'asadmin'
-        script = os.path.abspath(r'CORE\UAC_tools.py')
-        #params = ' '.join([script] +
-        #                  [self.installation_folder.replace(' ', '%20')] +
-        #                  [self.rhino_folder.replace(' ', '%20')] +
-        #                  [self.package_folder.replace(' ', '%20') + self.package_file] +
-        #                  [ASADMIN])
+        script = sys._MEIPASS + r'\CORE\UAC_EXECUTER.exe'
+        # script = os.path.abspath(r'CORE\UAC_tools.py')
+        # script = sys.argv[0] + r'\CORE\UAC_tools.py'
+        params = ' '.join([script] +
+                          [self.installation_folder.replace(' ', '%20')] +
+                          [self.rhino_folder.replace(' ', '%20')] +
+                          [self.package_folder.replace(' ', '%20') + self.package_file] +
+                          [ASADMIN])
+
+        self.MWLOG.info(params)
+
+        if os.path.isfile(script):
+            self.MWLOG.info('UAC MODULE FOUND. LET MICROSOFT DECIDE WHAT THE HELL WILL HAPPEN.')
 
         try:
             #dict = shell.ShellExecuteEx(lpVerb='runas',
@@ -70,20 +86,31 @@ class pilot(threading.Thread):
             #                            lpParameters=params
             #                            )
 
+            # os.system(script)
+
+            self.MWLOG.info('UAC FINISHED')
 
             #hh = dict['hProcess']
             #print hh
             #ret = win32event.WaitForSingleObject(hh, -1)
             #   print ret
 
-            params = ' '.join([script] +
-                              [self.installation_folder.replace(' ', '%20')] +
-                              [self.rhino_folder.replace(' ', '%20')] +
-                              [self.package_folder.replace(' ', '%20') + self.package_file])
+            #params = ' '.join([script] +
+            #                  [self.installation_folder.replace(' ', '%20')] +
+            #                  [self.rhino_folder.replace(' ', '%20')] +
+            #                  [self.package_folder.replace(' ', '%20') + self.package_file])
 
-            prog = sp.Popen(['runas', params, '/noprofile', '/user:Administrator', 'NeedsAdminPrivilege.exe'], stdin=sp.PIPE)
-            # prog.stdin.write('password')
-            prog.communicate()
+            #print params
+
+            prog = sp.Popen(['runas',
+                             '/noprofile',
+                             '/user:Administrator',
+                             params],
+                             stdin=sp.PIPE,
+                             shell=True)
+
+            #prog.stdin.write('8569')
+            #prog.communicate()
 
             stat = 1
 
