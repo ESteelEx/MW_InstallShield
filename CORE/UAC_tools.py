@@ -5,10 +5,11 @@ import logging
 
 print 'Execution string ' + str(sys.argv)
 
-if len(sys.argv) > 3:
+if len(sys.argv) > 4:
     INST_FOLDER = sys.argv[1].replace('%20', ' ')
     RHINO_FOLDER = sys.argv[2].replace('%20', ' ')
     PACKAGE = sys.argv[3].replace('%20', ' ')
+    SETUP_FOLDER = sys.argv[4].replace('%20', ' ')
 else:
     print 'Folder destinations are missing.'
     print '1. -> Installation folder'
@@ -145,9 +146,11 @@ def create_reg_key():
 def create_startmenu_shortcut():
 
     try:
-        shortcut_group_name = "Moduleworks"
-        shortcut_name = "Visit ModuleWorks website"
-        shortcut_target = "http://www.moduleworks.com"
+        shortcut_group_name = 'Moduleworks'
+        shortcut_name = ['Visit ModuleWorks website', 'Rhino MW3D Printing']
+        shortcut_target = ['http://www.moduleworks.com',
+                           str(RHINO_FOLDER) + r'\System\Rhino.exe']
+        shortcut_args = ['""', str(RHINO_FOLDER) + r'Plug-ins\Toolbars\MW3DPrint_TB.rui']
 
         sh = win32com.client.Dispatch("WScript.Shell")
         p = sh.SpecialFolders("AllUsersPrograms")
@@ -157,9 +160,11 @@ def create_startmenu_shortcut():
         if not os.path.isdir(p):
             os.makedirs(p)
 
-        lnk = sh.CreateShortcut(os.path.join(p, shortcut_name + ".lnk"))
-        lnk.TargetPath = shortcut_target
-        lnk.Save()
+        for i in range(len(shortcut_name)):
+            lnk = sh.CreateShortcut(os.path.join(p, shortcut_name[i] + '.lnk'))
+            lnk.TargetPath = shortcut_target[i]
+            lnk.Arguments = shortcut_args[i]
+            lnk.Save()
 
     except Exception as e:
         MWLOG.exception('CREATING SHORTCUT')
@@ -173,7 +178,7 @@ MWLOG.info('---------------------------------------------')
 MWLOG.info('MW installer start: ' + time.ctime())
 MWLOG.info('---------------------------------------------')
 
-if len(sys.argv) > 3:
+if len(sys.argv) > 4:
     MWLOG.info('Creating installation folder')
     mkdir(INST_FOLDER)
     MWLOG.info('Extracting package')
@@ -191,4 +196,10 @@ if len(sys.argv) > 3:
     MWLOG.info('DONE')
 else:
     print 'Folder destinations are missing.'
-    MWLOG.error('Folder destinationsa are missing. Add sys arguments.')
+    MWLOG.error('Folder destinations are missing. Add sys arguments.')
+
+# move logfile
+try:
+    shutil.move(r'MWLOG_UAC.log', SETUP_FOLDER + r'\MWLOG_UAC.log')
+except:
+    pass

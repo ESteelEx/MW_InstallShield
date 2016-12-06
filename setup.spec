@@ -33,10 +33,10 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     name=os.path.join('dist', 'setup.exe'),
-    debug=True,
+    debug=False,
     strip=None,
     upx=True,
-    console=True,
+    console=False,
     icon='bin\\images\\install.ico')
 
 if os.path.isfile('setup.exe'):

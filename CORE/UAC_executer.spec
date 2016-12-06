@@ -33,13 +33,13 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     name=os.path.join('dist', 'UAC_EXECUTER.exe'),
-    debug=True,
+    debug=False,
     strip=None,
     upx=True,
-    console=True)
+    console=False)
 
-if os.path.isfile('setup.exe'):
-    os.remove('setup.exe')
+if os.path.isfile('UAC_EXECUTER.exe'):
+    os.remove('UAC_EXECUTER.exe')
     shutil.copy('dist\\UAC_EXECUTER.exe', 'UAC_EXECUTER.exe')
 else:
     shutil.copy('dist\\UAC_EXECUTER.exe', 'UAC_EXECUTER.exe')
