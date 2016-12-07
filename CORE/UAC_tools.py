@@ -45,6 +45,7 @@ def extract(INST_FOLDER, PACKAGE):
         z = zipfile.ZipFile(fh)
         for name in z.namelist():
             print name
+            MWLOG.info(' -> ' + name)
             if str(name)[-1] == '/':
 
                 folders = name.split('/')
@@ -63,7 +64,6 @@ def extract(INST_FOLDER, PACKAGE):
                 outfile.close()
     except Exception as e:
         MWLOG.exception('EXTRACTING')
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 def copy_conf_file(INST_FOLDER, RHINO_FOLDER):

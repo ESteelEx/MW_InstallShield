@@ -1,4 +1,4 @@
-import shutil, psutil
+import shutil, psutil, os
 
 for proc in psutil.process_iter():
     try:
@@ -39,9 +39,9 @@ exe = EXE(
     console=False,
     icon='bin\\images\\install.ico')
 
-if os.path.isfile('setup.exe'):
-    os.remove('setup.exe')
-    shutil.copy('dist\\setup.exe', 'setup.exe')
+if os.path.isfile('MW3DPrintingForRhino.exe'):
+    os.remove('MW3DPrintingForRhino.exe')
+    shutil.copy('dist\\setup.exe', 'MW3DPrintingForRhino.exe')
 else:
-    shutil.copy('dist\\setup.exe', 'setup.exe')
+    shutil.copy('dist\\setup.exe', 'MW3DPrintingForRhino.exe')
 

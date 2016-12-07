@@ -1,11 +1,28 @@
 import os, wx, sys
-from CORE import pilot
 import UI_settings as UI
 import _winreg
+import win32event, win32con, win32process
+import psutil, logging
+from CORE import pilot
+import win32com.shell.shell as shell
+from win32com.shell import shellcon
 
+
+# ----------------------------------------------------------------------------------------------------------------------
+def qstDialog(question, caption,):
+    dlg = wx.MessageDialog(None,
+                           question,
+                           caption,
+                           wx.YES_NO | wx.ICON_QUESTION)
+    result = dlg.ShowModal()
+    dlg.Destroy()
+
+    return result
 
 class installShield(wx.Dialog):
     def __init__(self):
+
+        self.MWLOG = logging.getLogger('MWSETUP')
 
         try:
             base_path = sys._MEIPASS + '\\'
@@ -21,6 +38,9 @@ class installShield(wx.Dialog):
 
         self.postfix_installation_folder = r'\MW3DPrinting\\'
         self.icon_main = base_path + r'bin\images\install.ico'
+
+        self.toolbar_folder = r'Plug-ins\Toolbars\\'
+        self.toolbar_file = r'MW3DPrint_TB.rui'
 
         self.editbox = []
 
@@ -58,9 +78,7 @@ class installShield(wx.Dialog):
         # TEXT HEADER
         # _______________________________________________________________________________
 
-
         label = 'Please enter information below to start MW 3D Printer installation.'
-
 
         text = wx.StaticText(self,
                              label=label,
@@ -284,13 +302,53 @@ class installShield(wx.Dialog):
         print self.rhino_folder
         print self.inst_folder
 
+        for proc in psutil.process_iter():
+            try:
+                if proc.name() == 'Rhino.exe':
+                    self.MWLOG.info('AN INSTANCE OF RHINO IS RUNNING')
+                    print 'Rhino is running. Please exit instance.'
+
+                    answer = qstDialog('You want to close Rhino instance? All data will be lost.',
+                                       'Closing process')
+
+                    if answer == wx.ID_YES:
+                        try:
+                            print 'Killing process '
+                            proc.kill()
+                            print 'Rhino killed.'
+                            self.MWLOG.info('I KILLED A RHINO')
+                        except:
+                            self.MWLOG.info('COULD NOT KILL RHINO')
+                            print 'Wasnt successful. End manually.'
+                            print 'Retry!'
+                            return
+                    else:
+                        return
+
+            except Exception as e:
+                if len(e.message) > 0:
+                    self.MWLOG.error(e.message)
+
         P = pilot.pilot(self.rhino_folder, self.inst_folder)
         P.start()
         P.join()
 
-        self.Destroy()
+        answer = qstDialog('You want to start Rhino now to activate tool bar? Otherwise start it from MW folder in start menu the first time.',
+                           'Activation')
 
-        print 'Have a nice one'
+        if answer == wx.ID_YES:
+            cmd = self.rhino_folder + r'system\Rhino.exe'
+            params = '"' + self.rhino_folder + self.toolbar_folder + self.toolbar_file + '"'
+
+            showCmd = win32con.SW_HIDE  # SW_SHOWNORMAL
+
+            procInfo = shell.ShellExecuteEx(nShow=showCmd,
+                                            fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
+                                            lpFile=cmd,
+                                            lpParameters=params
+                                            )
+
+        self.Destroy()
 
     # ------------------------------------------------------------------------------------------------------------------
     def close_IS(self, event):

@@ -1,8 +1,9 @@
 import os, sys
+import logging, threading
+import win32event, win32con, win32process
+
 import win32com.shell.shell as shell
-import threading
-import psutil
-import logging
+from win32com.shell import shellcon
 
 
 class pilot(threading.Thread):
@@ -24,36 +25,13 @@ class pilot(threading.Thread):
 
         self.MWLOG.info('STARTING INSTALLATION RUN')
 
-        running_inst = 0
-        for proc in psutil.process_iter():
-            try:
-                if proc.name() == 'Rhino.exe':
-                    self.MWLOG.info('AN INSTANCE OF RHINO IS RUNNING')
-                    print 'Rhino is running. Please exit instance.'
-                    try:
-                        print 'Killing process '
-                        proc.kill()
-                        print 'Rhino killed.'
-                        self.MWLOG.info('I KILLED A RHINO')
-                    except:
-                        self.MWLOG.info('COULD NOT KILL RHINO')
-                        print 'Wasnt successful. End manually.'
-                        print 'Retry!'
-                        return
-
-            except:
-                self.MWLOG.exception('THREAD')
-
         stat = self.install()
 
         print 'Installation done.'
 
         # print 'Starting Rhino'
 
-        cmd = '""%s" "%s""' % (self.rhino_folder + r'system\Rhino.exe ',
-                               self.rhino_folder + self.toolbar_folder + self.toolbar_file)
 
-        # os.system(cmd)
 
         self.MWLOG.info('DONE')
 
@@ -69,32 +47,42 @@ class pilot(threading.Thread):
             exeFolder = os.getcwd()
             executable = r'\CORE\UAC_EXECUTER.exe'
 
-        self.MWLOG.info('Workingdirectory: ' + str(exeFolder))
+        self.MWLOG.info('WD: ' + str(exeFolder))
 
         print exeFolder
         print executable
 
         params = ' '.join([self.installation_folder.replace(' ', '%20')] +
                           [self.rhino_folder.replace(' ', '%20')] +
-                          [exeFolder + self.package_folder.replace(' ', '%20') + self.package_file] +
+                          [exeFolder + r'\\' + self.package_folder.replace(' ', '%20') + self.package_file] +
                           [self.setup_folder.replace(' ', '%20')] +
                           [ASADMIN])
 
         self.MWLOG.info(params)
 
         if os.path.isfile(exeFolder + executable):
-            self.MWLOG.info('UAC MODULE FOUND. LET MICROSOFT DECIDE WHAT THE HELL WILL HAPPEN.')
+            self.MWLOG.info('UAC MODULE FOUND')
+
+        showCmd = win32con.SW_HIDE  # SW_SHOWNORMAL
 
         try:
-            dict = shell.ShellExecuteEx(lpVerb='runas',
-                                        lpFile=exeFolder + executable,
-                                        lpParameters=params
-                                        )
+            self.MWLOG.info('UAC EXECUTE')
+            procInfo = shell.ShellExecuteEx(nShow=showCmd,
+                                            fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
+                                            lpVerb='runas',
+                                            lpFile=exeFolder + executable,
+                                            lpParameters=params
+                                            )
 
-            hh = dict['hProcess']
-            ret = win32event.WaitForSingleObject(hh, -1)
+            procHandle = procInfo['hProcess']
+            obj = win32event.WaitForSingleObject(procHandle, win32event.INFINITE)
+            rc = win32process.GetExitCodeProcess(procHandle)
 
-            self.MWLOG.info(str(ret))
+            if rc == 0:
+                self.MWLOG.info('UAC STAGE WAS SUCCESSFUL')
+            else:
+                self.MWLOG.error('EXITCODE OF UAC STAGE: ' + str(rc))
+
             self.MWLOG.info('UAC FINISHED')
 
             stat = 1
