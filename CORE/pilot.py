@@ -11,8 +11,8 @@ class pilot(threading.Thread):
         self.installation_folder = installation_folder
         self.setup_folder = os.getcwd()
         self.package_folder = r'bin\package\\'
-        self.package_file = 'MWAdditive.zip'
-        self.config_file = 'MW_printer_global_parameter.py'
+        self.package_file = r'MWAdditive.zip'
+        self.config_file = r'MW_printer_global_parameter.py'
         self.lib_folder = r'Plug-ins\IronPython\Lib\\'
         self.toolbar_folder = r'Plug-ins\Toolbars\\'
         self.toolbar_file = r'MW3DPrint_TB.rui'
@@ -69,12 +69,14 @@ class pilot(threading.Thread):
             exeFolder = os.getcwd()
             executable = r'\CORE\UAC_EXECUTER.exe'
 
+        self.MWLOG.info('Workingdirectory: ' + str(exeFolder))
+
         print exeFolder
         print executable
 
         params = ' '.join([self.installation_folder.replace(' ', '%20')] +
                           [self.rhino_folder.replace(' ', '%20')] +
-                          [self.package_folder.replace(' ', '%20') + self.package_file] +
+                          [exeFolder + self.package_folder.replace(' ', '%20') + self.package_file] +
                           [self.setup_folder.replace(' ', '%20')] +
                           [ASADMIN])
 
@@ -89,6 +91,10 @@ class pilot(threading.Thread):
                                         lpParameters=params
                                         )
 
+            hh = dict['hProcess']
+            ret = win32event.WaitForSingleObject(hh, -1)
+
+            self.MWLOG.info(str(ret))
             self.MWLOG.info('UAC FINISHED')
 
             stat = 1

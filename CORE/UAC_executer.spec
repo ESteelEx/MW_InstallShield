@@ -33,10 +33,10 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     name=os.path.join('dist', 'UAC_EXECUTER.exe'),
-    debug=False,
+    debug=True,
     strip=None,
     upx=True,
-    console=False)
+    console=True)
 
 if os.path.isfile('UAC_EXECUTER.exe'):
     os.remove('UAC_EXECUTER.exe')

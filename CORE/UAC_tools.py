@@ -40,10 +40,10 @@ def mkdir(INST_FOLDER):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def extract(INST_FOLDER, PACKAGE):
-    fh = open(PACKAGE, 'rb')
-    z = zipfile.ZipFile(fh)
-    for name in z.namelist():
-        try:
+    try:
+        fh = open(PACKAGE, 'rb')
+        z = zipfile.ZipFile(fh)
+        for name in z.namelist():
             print name
             if str(name)[-1] == '/':
 
@@ -61,10 +61,8 @@ def extract(INST_FOLDER, PACKAGE):
                 outfile = open(INST_FOLDER + name, 'wb')
                 outfile.write(z.read(name))
                 outfile.close()
-        except Exception as e:
-            MWLOG.exception('EXTRACTING')
-
-    fh.close()
+    except Exception as e:
+        MWLOG.exception('EXTRACTING')
 
 
 # ----------------------------------------------------------------------------------------------------------------------
