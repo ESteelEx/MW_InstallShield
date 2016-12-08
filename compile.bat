@@ -6,5 +6,5 @@ pyinstaller UAC_EXECUTER.spec
 echo ...
 echo COMPILING SETUP
 cd ..
-pyinstaller setup.spec
+pyinstaller --clean --win-private-assemblies setup.spec
 echo DONE
