@@ -131,8 +131,8 @@ def adapt_abs_folders(INST_FOLDER, RHINO_FOLDER):
 # ----------------------------------------------------------------------------------------------------------------------
 def create_reg_key():
     try:
-        reg = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, 'Software')
-        reg_mw = _winreg.CreateKey(reg, 'MW3DPrinting')
+        reg = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r'Software\MW')
+        reg_mw = _winreg.CreateKey(reg, '3DPrinting')
         _winreg.SetValue(reg_mw, 'CorePath', 1, INST_FOLDER)
         _winreg.SetValue(reg_mw, 'ConfigFile', 1, RHINO_FOLDER + LIB_FOLDER + CONFIG_FILE)
         # _winreg.CloseKey(_winreg.HKEY_LOCAL_MACHINE)

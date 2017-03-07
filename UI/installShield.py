@@ -23,6 +23,7 @@ class installShield(wx.Dialog):
     def __init__(self):
 
         self.MWLOG = logging.getLogger('MWSETUP')
+        self.prev_installation = False
 
         try:
             base_path = sys._MEIPASS + '\\'
@@ -34,7 +35,7 @@ class installShield(wx.Dialog):
             print base_path
 
         self.root_reg_key = r'Software\McNeel\Rhinoceros\\'
-        self.MW_reg_key = r'Software\MW3DPrinting\\'
+        self.MW_reg_key = r'Software\MW\3DPrinting\\'
 
         self.postfix_installation_folder = r'\MW3DPrinting\\'
         self.icon_main = base_path + r'bin\images\install.ico'
@@ -179,7 +180,7 @@ class installShield(wx.Dialog):
         # TEXT INSTALL CORE
         # _______________________________________________________________________________
 
-        label = 'Enter installation folder:'
+        label = 'Enter installation folder. Do not install into ProgramFiles folder:'
 
         text = wx.StaticText(self,
                              label=label,
@@ -204,10 +205,13 @@ class installShield(wx.Dialog):
         self.editbox[1].Bind(wx.EVT_KEY_DOWN, self.installOK)
 
         try:
-            key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, self.MW_reg_key)
+            key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, self.MW_reg_key)
             core_path = _winreg.QueryValue(key, 'CorePath')
+            if core_path[-1] == '\\\\':
+                core_path = core_path.decode('string_escape')
 
             label = 'Previous installation found in'
+            self.prev_installation = True
 
             text = wx.StaticText(self,
                                  label=label,
@@ -220,8 +224,9 @@ class installShield(wx.Dialog):
 
             self.editbox[1].SetValue(core_path)
             self.editbox[1].MoveXY(UI.THEADERSTART['pos'][0], UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem)
-        except:
-            self.editbox[1].SetValue(os.environ['PROGRAMFILES'] + self.postfix_installation_folder)
+        except Exception as e:
+            self.MWLOG.exception('REGKEY')
+            self.editbox[1].SetValue(os.environ['PROGRAMFILES'][0:2] + self.postfix_installation_folder)
 
         self.current_y_pxpos_elem += 30
 
@@ -238,7 +243,7 @@ class installShield(wx.Dialog):
         checkbox.SetForegroundColour(UI.ECOLOR2['FG'])
         checkbox.SetValue(1)
 
-        # BUTTON
+        # BUTTON (INSTALL)
         # _______________________________________________________________________________
 
         label = 'INSTALL'
@@ -259,8 +264,28 @@ class installShield(wx.Dialog):
         else:
             label = 'EXIT'
             self.button_install.SetLabel('EXIT')
-
             self.button_install.Bind(wx.EVT_LEFT_UP, self.close_IS)
+
+        # BUTTON (UNINSTALL)
+        # __________________________________________________________________
+
+        if self.prev_installation:
+
+            label = 'UNINSTALL'
+
+            pos = (UI.WMAIN['size'][0] - 480, UI.WMAIN['size'][1] - 50)
+
+            self.button_uninstall = wx.StaticText(self,
+                                                  label=label,
+                                                  pos=pos)
+
+            self.button_uninstall.SetForegroundColour(UI.ECOLOR2['FG'])
+
+            self.button_uninstall.Bind(wx.EVT_MOTION, self.uninstallOver)
+            self.button_uninstall.Bind(wx.EVT_LEFT_DOWN, self.uninstallDOWN)
+
+            self.button_uninstall.Bind(wx.EVT_LEFT_UP, self.uninstallOK)
+
 
     # ------------------------------------------------------------------------------------------------------------------
     def installOver(self, event):
@@ -275,7 +300,29 @@ class installShield(wx.Dialog):
         self.button_install.SetForegroundColour(UI.SWAPPING['DOWN'])
 
     # ------------------------------------------------------------------------------------------------------------------
+    def uninstallDOWN(self, event):
+        self.button_uninstall.SetLabel('UNINSTALL')
+        self.button_uninstall.SetForegroundColour(UI.SWAPPING['DOWN'])
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def uninstallOK(self, event):
+        self.button_uninstall.SetLabel('UNINSTALL')
+        self.button_uninstall.SetForegroundColour(UI.ECOLOR3['FG'])
+
+        answer = qstDialog('Are you sure you want to remove MW 3D Printing for Rhino?',
+                           'Uninstall')
+
+        if answer == wx.ID_YES:
+            pass
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def uninstallOver(self, event):
+        pass
+
+    # ------------------------------------------------------------------------------------------------------------------
     def installOK(self, event):
+        self.button_install.SetLabel('INSTALL')
+        self.button_install.SetForegroundColour(UI.ECOLOR3['FG'])
 
         try:
             keycode = event.GetKeyCode()
@@ -286,9 +333,6 @@ class installShield(wx.Dialog):
                 return
         except:
             pass
-
-        self.button_install.SetLabel('INSTALL')
-        self.button_install.SetForegroundColour(UI.SWAPPING['UP'])
 
         self.rhino_folder = self.editbox[0].GetValue()
         self.inst_folder = self.editbox[1].GetValue()
@@ -333,7 +377,7 @@ class installShield(wx.Dialog):
         P.start()
         P.join()
 
-        answer = qstDialog('You want to start Rhino now to activate tool bar? Otherwise start it from MW folder in start menu the first time.',
+        answer = qstDialog('Do you want to start Rhino now to activate tool bar? Otherwise start it from MW folder in start menu the first time.',
                            'Activation')
 
         if answer == wx.ID_YES:
@@ -348,7 +392,7 @@ class installShield(wx.Dialog):
                                             lpParameters=params
                                             )
 
-        self.Destroy()
+        # self.Destroy()
 
     # ------------------------------------------------------------------------------------------------------------------
     def close_IS(self, event):
