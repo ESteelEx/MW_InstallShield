@@ -139,6 +139,13 @@ def create_reg_key():
     except Exception as e:
         MWLOG.exception('REG KEY')
 
+# ----------------------------------------------------------------------------------------------------------------------
+def remove_reg_key():
+    try:
+        pass
+    except:
+        MWLOG.exception('REMOVE REG KEY')
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 def create_startmenu_shortcut():

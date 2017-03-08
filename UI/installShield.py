@@ -49,8 +49,10 @@ class installShield(wx.Dialog):
                            style=wx.SYSTEM_MENU |
                                  wx.CAPTION |
                                  wx.CLOSE_BOX |
-                                 wx.TAB_TRAVERSAL |
-                                 wx.STAY_ON_TOP )  # | wx.RESIZE_BORDER)  # | wx.TRANSPARENT_WINDOW)
+                                 wx.TAB_TRAVERSAL)  # | wx.RESIZE_BORDER)  # | wx.TRANSPARENT_WINDOW)
+
+        self.win_style = self.GetWindowStyle()
+        self.SetWindowStyle(self.win_style | wx.STAY_ON_TOP)
 
         icon = wx.IconFromBitmap(wx.Bitmap(self.icon_main))
         self.SetIcon(icon)
@@ -156,6 +158,8 @@ class installShield(wx.Dialog):
             key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, self.root_reg_key + subkey + "\\Install")
             reg_value = _winreg.QueryValueEx(key, "InstallPath")[0]
 
+            self.reg_rhino_folder = reg_value
+
             self.editbox[0].SetValue(reg_value)
             self.editbox[0].MoveXY(UI.THEADERSTART['pos'][0], UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem)
 
@@ -207,6 +211,9 @@ class installShield(wx.Dialog):
         try:
             key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, self.MW_reg_key)
             core_path = _winreg.QueryValue(key, 'CorePath')
+            self.reg_core_path = core_path
+            self.config_file = _winreg.QueryValue(key, 'ConfigFile')
+
             if core_path[-1] == '\\\\':
                 core_path = core_path.decode('string_escape')
 
@@ -301,12 +308,25 @@ class installShield(wx.Dialog):
 
     # ------------------------------------------------------------------------------------------------------------------
     def choose_folder(self, event):
+        # remove on top
+        self.SetWindowStyle(self.win_style)
+
         dlg = wx.DirDialog(None, 'Choose input directory', style=wx.DD_DEFAULT_STYLE)
+
+        # self is a frame
+        style = self.GetWindowStyle()
+        # stay on top
+        self.SetWindowStyle(style | wx.STAY_ON_TOP)
+        # normal behaviour again
+        self.SetWindowStyle(style)
 
         if dlg.ShowModal() == wx.ID_OK:
             self.editbox[1].SetValue(dlg.GetPath())
 
         dlg.Destroy()
+
+        # add on top
+        self.SetWindowStyle(self.win_style | wx.STAY_ON_TOP)
 
     # ------------------------------------------------------------------------------------------------------------------
     def installOver(self, event):
@@ -320,25 +340,7 @@ class installShield(wx.Dialog):
             self.button_install.SetLabel('EXIT')
         self.button_install.SetForegroundColour(UI.SWAPPING['DOWN'])
 
-    # ------------------------------------------------------------------------------------------------------------------
-    def uninstallDOWN(self, event):
-        self.button_uninstall.SetLabel('UNINSTALL')
-        self.button_uninstall.SetForegroundColour(UI.SWAPPING['DOWN'])
 
-    # ------------------------------------------------------------------------------------------------------------------
-    def uninstallOK(self, event):
-        self.button_uninstall.SetLabel('UNINSTALL')
-        self.button_uninstall.SetForegroundColour(UI.ECOLOR3['FG'])
-
-        answer = qstDialog('Are you sure you want to remove MW 3D Printing for Rhino?',
-                           'Uninstall')
-
-        if answer == wx.ID_YES:
-            pass
-
-    # ------------------------------------------------------------------------------------------------------------------
-    def uninstallOver(self, event):
-        pass
 
     # ------------------------------------------------------------------------------------------------------------------
     def installOK(self, event):
@@ -414,6 +416,62 @@ class installShield(wx.Dialog):
                                             )
 
         # self.Destroy()
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def uninstallOver(self, event):
+        pass
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def uninstallDOWN(self, event):
+        self.button_uninstall.SetLabel('UNINSTALL')
+        self.button_uninstall.SetForegroundColour(UI.SWAPPING['DOWN'])
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def uninstallOK(self, event):
+        self.button_uninstall.SetLabel('UNINSTALL')
+        self.button_uninstall.SetForegroundColour(UI.ECOLOR3['FG'])
+
+        answer = qstDialog('Are you sure you want to remove MW 3D Printing for Rhino?',
+                           'Uninstall')
+
+        if answer == wx.ID_YES:
+
+            print self.reg_rhino_folder
+            print self.reg_core_path
+
+            for proc in psutil.process_iter():
+                try:
+                    if proc.name() == 'Rhino.exe':
+                        self.MWLOG.info('AN INSTANCE OF RHINO IS RUNNING')
+                        print 'Rhino is running. Please exit instance.'
+
+                        answer = qstDialog('You want to close Rhino instance? All data will be lost.',
+                                           'Closing process')
+
+                        if answer == wx.ID_YES:
+                            try:
+                                print 'Killing process '
+                                proc.kill()
+                                print 'Rhino killed.'
+                                self.MWLOG.info('I KILLED A RHINO')
+                            except:
+                                self.MWLOG.info('COULD NOT KILL RHINO')
+                                print 'Wasnt successful. End manually.'
+                                print 'Retry!'
+                                return
+                        else:
+                            return
+
+                except Exception as e:
+                    if len(e.message) > 0:
+                        self.MWLOG.error(e.message)
+
+            P = pilot.pilot(self.reg_rhino_folder, self.reg_core_path, routine='uninstall')
+            P.start()
+            P.join()
+
+            # self.Destroy()
+
 
     # ------------------------------------------------------------------------------------------------------------------
     def close_IS(self, event):
