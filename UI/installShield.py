@@ -197,7 +197,7 @@ class installShield(wx.Dialog):
         self.editbox.append((wx.TextCtrl(self,
                                name='path_Rhino',
                                pos=(UI.THEADERSTART['pos'][0], UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem),
-                               size=(UI.WMAIN['size'][0]-45, UI.EBOX['size'][1]),
+                               size=(UI.WMAIN['size'][0]-70, UI.EBOX['size'][1]),
                                style=wx.TE_PROCESS_ENTER)))
 
         self.editbox[1].SetForegroundColour(UI.ECOLOR2['FG'])  # set color
@@ -226,7 +226,19 @@ class installShield(wx.Dialog):
             self.editbox[1].MoveXY(UI.THEADERSTART['pos'][0], UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem)
         except Exception as e:
             self.MWLOG.exception('REGKEY')
-            self.editbox[1].SetValue(os.environ['PROGRAMFILES'][0:2] + self.postfix_installation_folder)
+            self.editbox[1].SetValue(os.environ['PROGRAMFILES'][0:2] + self.postfix_installation_folder.decode('string_escape'))
+
+
+        # BUTTON CHOOSE FOLDER
+        # _______________________________________________________________________________
+        self.button_choose_folder = wx.Button(self,
+                                              label='...',
+                                              size=[20, 20],
+                                              pos=[455, UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem])
+
+        self.button_choose_folder.SetForegroundColour((250, 250, 250))
+        self.button_choose_folder.SetBackgroundColour((80, 80, 80))
+        self.button_choose_folder.Bind(wx.EVT_BUTTON, self.choose_folder)
 
         self.current_y_pxpos_elem += 30
 
@@ -236,12 +248,13 @@ class installShield(wx.Dialog):
         #          size=DefaultSize, style=0, validator=DefaultValidator,
         #          name=CheckBoxNameStr)
 
-        checkbox = wx.CheckBox(self,
-                               label='Install Rhino tool bar',
-                               pos=(UI.THEADERSTART['pos'][0], UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
+        # checkbox = wx.CheckBox(self,
+        #                       label='Install Rhino tool bar',
+        #                       pos=(UI.THEADERSTART['pos'][0], UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
 
-        checkbox.SetForegroundColour(UI.ECOLOR2['FG'])
-        checkbox.SetValue(1)
+        # checkbox.SetForegroundColour(UI.ECOLOR2['FG'])
+        # checkbox.SetValue(1)
+
 
         # BUTTON (INSTALL)
         # _______________________________________________________________________________
@@ -262,9 +275,9 @@ class installShield(wx.Dialog):
         if self.RhinoFound:
             self.button_install.Bind(wx.EVT_LEFT_UP, self.installOK)
         else:
-            label = 'EXIT'
             self.button_install.SetLabel('EXIT')
             self.button_install.Bind(wx.EVT_LEFT_UP, self.close_IS)
+
 
         # BUTTON (UNINSTALL)
         # __________________________________________________________________
@@ -286,6 +299,14 @@ class installShield(wx.Dialog):
 
             self.button_uninstall.Bind(wx.EVT_LEFT_UP, self.uninstallOK)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    def choose_folder(self, event):
+        dlg = wx.DirDialog(None, 'Choose input directory', style=wx.DD_DEFAULT_STYLE)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            self.editbox[1].SetValue(dlg.GetPath())
+
+        dlg.Destroy()
 
     # ------------------------------------------------------------------------------------------------------------------
     def installOver(self, event):
@@ -322,7 +343,7 @@ class installShield(wx.Dialog):
     # ------------------------------------------------------------------------------------------------------------------
     def installOK(self, event):
         self.button_install.SetLabel('INSTALL')
-        self.button_install.SetForegroundColour(UI.ECOLOR3['FG'])
+        self.button_install.SetForegroundColour(UI.ECOLOR2['FG'])
 
         try:
             keycode = event.GetKeyCode()
