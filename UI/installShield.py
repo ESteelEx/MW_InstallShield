@@ -466,9 +466,9 @@ class installShield(wx.Dialog):
                     if len(e.message) > 0:
                         self.MWLOG.error(e.message)
 
-            P = pilot.pilot(self.reg_rhino_folder, self.reg_core_path, routine='uninstall')
-            P.start()
-            P.join()
+            #P = pilot.pilot(self.reg_rhino_folder, self.reg_core_path, routine='uninstall')
+            #P.start()
+            #P.join()
 
             # self.Destroy()
 
