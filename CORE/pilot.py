@@ -56,6 +56,7 @@ class pilot(threading.Thread):
                           [self.rhino_folder.replace(' ', '%20')] +
                           [exeFolder + r'\\' + self.package_folder.replace(' ', '%20') + self.package_file] +
                           [self.setup_folder.replace(' ', '%20')] +
+                          ['install'] +
                           [ASADMIN])
 
         self.MWLOG.info(params)
@@ -114,6 +115,7 @@ class pilot(threading.Thread):
                           [self.rhino_folder.replace(' ', '%20')] +
                           [exeFolder + r'\\' + self.package_folder.replace(' ', '%20') + self.package_file] +
                           [self.setup_folder.replace(' ', '%20')] +
+                          ['uninstall'] +
                           [ASADMIN])
 
         self.MWLOG.info(params)

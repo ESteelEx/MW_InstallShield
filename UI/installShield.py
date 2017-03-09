@@ -1,10 +1,10 @@
-import os, wx, sys
-import UI_settings as UI
+import os, sys, wx
 import _winreg
-import win32event, win32con, win32process
+import win32con
 import psutil, logging
-from CORE import pilot
+import UI_settings as UI
 import win32com.shell.shell as shell
+from CORE import pilot
 from win32com.shell import shellcon
 
 
@@ -466,9 +466,9 @@ class installShield(wx.Dialog):
                     if len(e.message) > 0:
                         self.MWLOG.error(e.message)
 
-            #P = pilot.pilot(self.reg_rhino_folder, self.reg_core_path, routine='uninstall')
-            #P.start()
-            #P.join()
+            P = pilot.pilot(self.reg_rhino_folder, self.reg_core_path, routine='uninstall')
+            P.start()
+            P.join()
 
             # self.Destroy()
 
