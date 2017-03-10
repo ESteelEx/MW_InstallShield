@@ -9,7 +9,7 @@ from win32com.shell import shellcon
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def qstDialog(question, caption,):
+def qstDialog(question, caption):
     dlg = wx.MessageDialog(None,
                            question,
                            caption,
@@ -117,7 +117,7 @@ class installShield(wx.Dialog):
 
         self.editbox[0].SetForegroundColour(UI.ECOLOR2['FG'])  # set color
         self.editbox[0].SetBackgroundColour(UI.WCOLOR['BG'])  # set color
-        self.editbox[0].Bind(wx.EVT_KEY_DOWN, self.installOK)
+        # self.editbox[0].Bind(wx.EVT_KEY_DOWN, self.installOK)
 
         try:
             print 'Searching for Rhino installation ...'
@@ -126,7 +126,6 @@ class installShield(wx.Dialog):
             key = None
             message = 'There is no Rhino installed. Visit http://www.rhino3d.com/download/ to get your version.'
             print message
-            return
 
         if key is not None:
             i = 0
@@ -186,14 +185,16 @@ class installShield(wx.Dialog):
 
         label = 'Enter installation folder. Do not install into ProgramFiles folder:'
 
-        text = wx.StaticText(self,
-                             label=label,
-                             pos=(UI.THEADERSTART['pos'][0],
-                                  UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
+        if self.RhinoFound:
 
-        text.SetForegroundColour(UI.ECOLOR2['FG'])  # set text color
+            text = wx.StaticText(self,
+                                 label=label,
+                                 pos=(UI.THEADERSTART['pos'][0],
+                                      UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
 
-        self.current_y_pxpos_elem += 15
+            text.SetForegroundColour(UI.ECOLOR2['FG'])  # set text color
+
+        self.current_y_pxpos_elem += 18
 
         # EDITBOX CORE PATH
         # _______________________________________________________________________________
@@ -206,7 +207,7 @@ class installShield(wx.Dialog):
 
         self.editbox[1].SetForegroundColour(UI.ECOLOR2['FG'])  # set color
         self.editbox[1].SetBackgroundColour(UI.WCOLOR['BG'])  # set color
-        self.editbox[1].Bind(wx.EVT_KEY_DOWN, self.installOK)
+        # self.editbox[1].Bind(wx.EVT_KEY_DOWN, self.installOK)
 
         try:
             key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, self.MW_reg_key)
@@ -227,7 +228,7 @@ class installShield(wx.Dialog):
 
             text.SetForegroundColour(UI.PARAMCOLOR['FG'])  # set text color
 
-            self.current_y_pxpos_elem += 15
+            self.current_y_pxpos_elem += 18
 
             self.editbox[1].SetValue(core_path)
             self.editbox[1].MoveXY(UI.THEADERSTART['pos'][0], UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem)
@@ -246,6 +247,10 @@ class installShield(wx.Dialog):
         self.button_choose_folder.SetForegroundColour((250, 250, 250))
         self.button_choose_folder.SetBackgroundColour((80, 80, 80))
         self.button_choose_folder.Bind(wx.EVT_BUTTON, self.choose_folder)
+
+        if self.prev_installation:
+            self.editbox[1].Disable()
+            self.button_choose_folder.Hide()
 
         self.current_y_pxpos_elem += 30
 
@@ -289,22 +294,29 @@ class installShield(wx.Dialog):
         # BUTTON (UNINSTALL)
         # __________________________________________________________________
 
+        label = 'UNINSTALL'
+
+        pos = (UI.WMAIN['size'][0] - 480, UI.WMAIN['size'][1] - 50)
+
+        self.button_uninstall = wx.StaticText(self,
+                                              label=label,
+                                              pos=pos)
+
+        self.button_uninstall.SetForegroundColour(UI.ECOLOR2['FG'])
+
+        self.button_uninstall.Bind(wx.EVT_MOTION, self.uninstallOver)
+        self.button_uninstall.Bind(wx.EVT_LEFT_DOWN, self.uninstallDOWN)
+
+        self.button_uninstall.Bind(wx.EVT_LEFT_UP, self.uninstallOK)
+
         if self.prev_installation:
+            self.button_uninstall.Show()
+        else:
+            self.button_uninstall.Hide()
 
-            label = 'UNINSTALL'
-
-            pos = (UI.WMAIN['size'][0] - 480, UI.WMAIN['size'][1] - 50)
-
-            self.button_uninstall = wx.StaticText(self,
-                                                  label=label,
-                                                  pos=pos)
-
-            self.button_uninstall.SetForegroundColour(UI.ECOLOR2['FG'])
-
-            self.button_uninstall.Bind(wx.EVT_MOTION, self.uninstallOver)
-            self.button_uninstall.Bind(wx.EVT_LEFT_DOWN, self.uninstallDOWN)
-
-            self.button_uninstall.Bind(wx.EVT_LEFT_UP, self.uninstallOK)
+        if not self.RhinoFound:
+            self.button_choose_folder.Hide()
+            self.editbox[1].Hide()
 
     # ------------------------------------------------------------------------------------------------------------------
     def choose_folder(self, event):
@@ -357,6 +369,11 @@ class installShield(wx.Dialog):
         except:
             pass
 
+        if self.prev_installation:
+            answer = qstDialog('Previous installation found. Overwrite with factory settings?', 'Installation')
+            if answer == wx.ID_NO:
+                return
+
         self.rhino_folder = self.editbox[0].GetValue()
         self.inst_folder = self.editbox[1].GetValue()
 
@@ -400,22 +417,38 @@ class installShield(wx.Dialog):
         P.start()
         P.join()
 
-        answer = qstDialog('Do you want to start Rhino now to activate tool bar? Otherwise start it from MW folder in start menu the first time.',
-                           'Activation')
+        if P.stat == 1:
 
-        if answer == wx.ID_YES:
-            cmd = self.rhino_folder + r'system\Rhino.exe'
-            params = '"' + self.rhino_folder + self.toolbar_folder + self.toolbar_file + '"'
+            answer = qstDialog('Do you want to start Rhino now to activate tool bar? Otherwise start it from MW folder in start menu the first time.',
+                               'Activation')
 
-            showCmd = win32con.SW_HIDE  # SW_SHOWNORMAL
+            if answer == wx.ID_YES:
+                cmd = self.rhino_folder + r'system\Rhino.exe'
+                params = '"' + self.rhino_folder + self.toolbar_folder + self.toolbar_file + '"'
 
-            procInfo = shell.ShellExecuteEx(nShow=showCmd,
-                                            fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
-                                            lpFile=cmd,
-                                            lpParameters=params
-                                            )
+                showCmd = win32con.SW_HIDE  # SW_SHOWNORMAL
 
-        # self.Destroy()
+                procInfo = shell.ShellExecuteEx(nShow=showCmd,
+                                                fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
+                                                lpFile=cmd,
+                                                lpParameters=params
+                                                )
+
+            self.prev_installation = True
+
+            answer = qstDialog('Installation done. Exit now?', 'Close')
+            if answer == wx.ID_YES:
+                self.Destroy()
+            else:
+                self.reg_rhino_folder = self.rhino_folder
+                self.reg_core_path = self.inst_folder
+                self.button_uninstall.Show()
+                self.editbox[1].Disable()
+                self.button_choose_folder.Hide()
+        else:
+            answer = qstDialog('Installation Failed. Exit now?', 'Close')
+            if answer == wx.ID_YES:
+                self.Destroy()
 
     # ------------------------------------------------------------------------------------------------------------------
     def uninstallOver(self, event):
@@ -470,8 +503,20 @@ class installShield(wx.Dialog):
             P.start()
             P.join()
 
-            # self.Destroy()
+            if P.stat == 1:
+                self.prev_installation = False
 
+                answer = qstDialog('Uninstall done. Exit now?', 'Close')
+                if answer == wx.ID_YES:
+                    self.Destroy()
+                else:
+                    self.button_uninstall.Hide()
+                    self.editbox[1].Enable()
+                    self.button_choose_folder.Show()
+            else:
+                answer = qstDialog('Uninstall Failed. Exit now?', 'Close')
+                if answer == wx.ID_YES:
+                    self.Destroy()
 
     # ------------------------------------------------------------------------------------------------------------------
     def close_IS(self, event):

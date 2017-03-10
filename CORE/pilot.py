@@ -19,6 +19,7 @@ class pilot(threading.Thread):
         self.toolbar_folder = r'Plug-ins\Toolbars\\'
         self.toolbar_file = r'MW3DPrint_TB.rui'
         self.MWLOG = logging.getLogger('MWSETUP')
+        self.stat = 0
         threading.Thread.__init__(self)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -86,13 +87,13 @@ class pilot(threading.Thread):
 
             self.MWLOG.info('UAC FINISHED')
 
-            stat = 1
+            self.stat = 1
 
         except Exception:
-            stat = -1
+            self.stat = -1
             self.MWLOG.exception('SHELL EXECUTE')
 
-        return stat
+        return self.stat
 
     # ------------------------------------------------------------------------------------------------------------------
     def uninstall(self):
@@ -145,10 +146,10 @@ class pilot(threading.Thread):
 
             self.MWLOG.info('UAC FINISHED')
 
-            stat = 1
+            self.stat = 1
 
         except Exception:
-            stat = -1
+            self.stat = -1
             self.MWLOG.exception('SHELL EXECUTE')
 
-        return stat
+        return self.stat

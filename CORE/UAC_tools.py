@@ -19,7 +19,6 @@ else:
     print '4. -> Setup folder'
     print '5. -> install or uninstall'
 
-print sys.argv
 
 LIB_FOLDER = r'Plug-ins\IronPython\Lib\\'
 CONFIG_FILE = 'MW_printer_global_parameter.py'
@@ -82,9 +81,10 @@ def copy_conf_file(INST_FOLDER, RHINO_FOLDER):
     except Exception as e:
         MWLOG.exception('COPY CONFIG FILE')
 
-def remove_conf_file(RHINO_FOLDER):
+# ----------------------------------------------------------------------------------------------------------------------
+def remove_conf_file(conf_file):
     try:
-        os.remove(RHINO_FOLDER + LIB_FOLDER + CONFIG_FILE)
+        os.remove(conf_file)
     except Exception as e:
         MWLOG.exception('REMOVING CONFIG FILE')
 
@@ -201,28 +201,9 @@ def create_startmenu_shortcut():
 def remove_startmenu_shortcut():
 
     try:
-        shortcut_group_name = 'Moduleworks'
-        shortcut_name = ['Visit ModuleWorks website', 'Rhino MW3D Printing']
-        shortcut_target = ['http://www.moduleworks.com',
-                           str(RHINO_FOLDER) + r'\System\Rhino.exe']
-        shortcut_args = ['""', str(RHINO_FOLDER) + r'Plug-ins\Toolbars\MW3DPrint_TB.rui']
-
-        sh = win32com.client.Dispatch("WScript.Shell")
-        p = sh.SpecialFolders("AllUsersPrograms")
-        assert (os.path.isdir(p))
-        p = os.path.join(p, shortcut_group_name)
-
-        if not os.path.isdir(p):
-            os.makedirs(p)
-
-        for i in range(len(shortcut_name)):
-            lnk = sh.CreateShortcut(os.path.join(p, shortcut_name[i] + '.lnk'))
-            lnk.TargetPath = shortcut_target[i]
-            lnk.Arguments = shortcut_args[i]
-            lnk.Save()
-
+        pass
     except Exception as e:
-        MWLOG.exception('CREATING SHORTCUT')
+        MWLOG.exception('REMOVING SHORTCUT')
 
 # ----------------------------------------------------------------------------------------------------------------------
 def install():
@@ -267,9 +248,9 @@ def uninstall():
         MWLOG.info('Removing installation folder')
         remove_folders([INST_FOLDER]) # add folders to list if there are more then one in the future
         MWLOG.info('Removing tool bar')
-        remove_toolbar(RHINO_FOLDER + TOOLBAR_FILE)
+        remove_toolbar(RHINO_FOLDER + TOOLBAR_FOLDER + TOOLBAR_FILE)
         MWLOG.info('Removing config file')
-        remove_conf_file(RHINO_FOLDER)
+        remove_conf_file(RHINO_FOLDER + LIB_FOLDER + CONFIG_FILE)
         MWLOG.info('Removing registry entry')
         remove_reg_key()
         MWLOG.info('Removing start menu entry')

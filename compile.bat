@@ -2,7 +2,7 @@
 cd CORE
 echo ...
 echo COMPILING UAC MODULE
-pyinstaller UAC_EXECUTER.spec
+pyinstaller --clean --win-private-assemblies UAC_EXECUTER.spec
 echo ...
 echo COMPILING SETUP
 cd ..
