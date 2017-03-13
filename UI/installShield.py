@@ -44,6 +44,7 @@ class installShield(wx.Dialog):
         self.toolbar_file = r'MW3DPrint_TB.rui'
 
         self.editbox = []
+        self.text = {}
 
         wx.Dialog.__init__(self, None, title='MW Installer - 3D Printing for Rhino', size=UI.WMAIN['size'],
                            style=wx.SYSTEM_MENU |
@@ -83,12 +84,12 @@ class installShield(wx.Dialog):
 
         label = 'Please enter information below to start MW 3D Printer installation.'
 
-        text = wx.StaticText(self,
-                             label=label,
-                             pos=(UI.THEADERSTART['pos'][0],
-                                  UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
+        self.text['header'] = wx.StaticText(self,
+                                       label=label,
+                                       pos=(UI.THEADERSTART['pos'][0],
+                                       UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
 
-        text.SetForegroundColour(UI.TCOLOR['FG'])  # set text color
+        self.text['header'].SetForegroundColour(UI.TCOLOR['FG'])  # set text color
 
         self.current_y_pxpos_elem += 40
 
@@ -97,12 +98,12 @@ class installShield(wx.Dialog):
 
         label = 'Rhino installation folder:'
 
-        text = wx.StaticText(self,
-                             label=label,
-                             pos=(UI.THEADERSTART['pos'][0],
-                                  UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
+        self.text['rhinoinstall'] = wx.StaticText(self,
+                                                  label=label,
+                                                  pos=(UI.THEADERSTART['pos'][0],
+                                                  UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
 
-        text.SetForegroundColour(UI.ECOLOR2['FG'])  # set text color
+        self.text['rhinoinstall'].SetForegroundColour(UI.ECOLOR2['FG'])  # set text color
 
         self.current_y_pxpos_elem += 15
 
@@ -137,12 +138,12 @@ class installShield(wx.Dialog):
 
                         label = 'Rhino version ' + subkey.split('x')[0] + ' - ' + subkey.split('x')[1] + ' bit - found'
 
-                        text = wx.StaticText(self,
-                                             label=label,
-                                             pos=(UI.THEADERSTART['pos'][0],
-                                                  UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
+                        self.text['rhinoversion'] = wx.StaticText(self,
+                                                                  label=label,
+                                                                  pos=(UI.THEADERSTART['pos'][0],
+                                                                  UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
 
-                        text.SetForegroundColour(UI.PARAMCOLOR['FG'])  # set text color
+                        self.text['rhinoversion'].SetForegroundColour(UI.PARAMCOLOR['FG'])  # set text color
 
                         self.current_y_pxpos_elem += 15
 
@@ -168,12 +169,12 @@ class installShield(wx.Dialog):
             label = 'No Rhino installation found.\n' \
                     'Visit www.Rhino3d.com to download the latest version.'
 
-            text = wx.StaticText(self,
-                                 label=label,
-                                 pos=(UI.THEADERSTART['pos'][0],
-                                      UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
+            self.text['norhinoversion'] =wx.StaticText(self,
+                                                       label=label,
+                                                       pos=(UI.THEADERSTART['pos'][0],
+                                                       UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
 
-            text.SetForegroundColour(UI.TERROR['FG'])  # set text color
+            self.text['norhinoversion'].SetForegroundColour(UI.TERROR['FG'])  # set text color
 
             self.current_y_pxpos_elem += 15
             self.editbox[0].Hide()
@@ -187,12 +188,12 @@ class installShield(wx.Dialog):
 
         if self.RhinoFound:
 
-            text = wx.StaticText(self,
-                                 label=label,
-                                 pos=(UI.THEADERSTART['pos'][0],
-                                      UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
+            self.text['installcore'] = wx.StaticText(self,
+                                                     label=label,
+                                                     pos=(UI.THEADERSTART['pos'][0],
+                                                          UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
 
-            text.SetForegroundColour(UI.ECOLOR2['FG'])  # set text color
+            self.text['installcore'].SetForegroundColour(UI.ECOLOR2['FG'])  # set text color
 
         self.current_y_pxpos_elem += 18
 
@@ -221,12 +222,12 @@ class installShield(wx.Dialog):
             label = 'Previous installation found in'
             self.prev_installation = True
 
-            text = wx.StaticText(self,
-                                 label=label,
-                                 pos=(UI.THEADERSTART['pos'][0],
-                                      UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
+            self.text['installfound'] = wx.StaticText(self,
+                                                      label=label,
+                                                      pos=(UI.THEADERSTART['pos'][0],
+                                                           UI.THEADERSTART['pos'][1] + self.current_y_pxpos_elem))
 
-            text.SetForegroundColour(UI.PARAMCOLOR['FG'])  # set text color
+            self.text['installfound'].SetForegroundColour(UI.PARAMCOLOR['FG'])  # set text color
 
             self.current_y_pxpos_elem += 18
 
@@ -235,7 +236,6 @@ class installShield(wx.Dialog):
         except Exception as e:
             self.MWLOG.exception('REGKEY')
             self.editbox[1].SetValue(os.environ['PROGRAMFILES'][0:2] + self.postfix_installation_folder.decode('string_escape'))
-
 
         # BUTTON CHOOSE FOLDER
         # _______________________________________________________________________________
@@ -352,12 +352,36 @@ class installShield(wx.Dialog):
             self.button_install.SetLabel('EXIT')
         self.button_install.SetForegroundColour(UI.SWAPPING['DOWN'])
 
+    # ------------------------------------------------------------------------------------------------------------------
+    def hideUIelements(self):
+        self.editbox[0].Hide()
+        self.editbox[1].Hide()
+        self.button_choose_folder.Hide()
+        for i, key in enumerate(self.text):
+            self.text[key].Hide()
 
+    # ------------------------------------------------------------------------------------------------------------------
+    def showUIelements(self):
+        self.editbox[0].Show()
+        self.editbox[1].Show()
+        self.button_choose_folder.Show()
+        for i, key in enumerate(self.text):
+            self.text[key].Show()
+
+    def progressbar(self):
+        self.text['progress'] = wx.StaticText(self,
+                                              label='hhhhhh',
+                                              position=(50, 150),
+                                              )
 
     # ------------------------------------------------------------------------------------------------------------------
     def installOK(self, event):
         self.button_install.SetLabel('INSTALL')
         self.button_install.SetForegroundColour(UI.ECOLOR2['FG'])
+
+        self.hideUIelements()
+
+        self.progressbar()
 
         try:
             keycode = event.GetKeyCode()
